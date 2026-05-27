@@ -1,0 +1,15 @@
+{
+  "name": "unity-ecosystem",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "setup": "npm run build && npm link -w packages/cli"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,34 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Compiled output
+dist/
+packages/*/dist/
+out/
+build/
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# VS Code / IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Unity builds and temp
+Builds/
+Temp/
+Library/
+Logs/
+Obj/
+UserSettings/
+/scratch/
