@@ -53,6 +53,15 @@ namespace UnityAI
             public string playModeState;
             public string code;
             public string prefabPath;
+            // High-precision design & gameplay fields
+            public float gridSize;
+            public bool alignRotation;
+            public int targetInstanceId;
+            public string layoutType;
+            public int count;
+            public float spacing;
+            public int columns;
+            public float radius;
         }
 
         private class TestListener : ICallbacks
@@ -405,6 +414,14 @@ namespace UnityAI
                     return await RunOnMainThread(() => HandleSearchAssets(req.fieldValue));
                 case "bind_script_component":
                     return await RunOnMainThread(() => HandleBindScriptComponent(req.instanceId, req.name));
+                case "snap_to_surface":
+                    return await RunOnMainThread(() => HandleSnapToSurface(req.instanceId));
+                case "align_to_grid":
+                    return await RunOnMainThread(() => HandleAlignToGrid(req.instanceId, req.gridSize, req.alignRotation));
+                case "diagnose_spatial_relations":
+                    return await RunOnMainThread(() => HandleDiagnoseSpatialRelations(req.instanceId, req.targetInstanceId));
+                case "generate_layout":
+                    return await RunOnMainThread(() => HandleGenerateLayout(req.layoutType, req.prefabPath, req.count, req.spacing, req.columns, req.radius, req.parentId));
                 default:
                     return $"{{\"success\":false,\"error\":\"Unknown action: {req.action}\"}}";
             }
@@ -1628,6 +1645,202 @@ public static class UnityAI_TempEval
                 EditorUtility.SetDirty(go);
 
                 return $"{{\"success\":true,\"instanceId\":{instanceId},\"className\":\"{className}\",\"componentId\":{comp.GetInstanceID()}}}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"success\":false,\"error\":{JsonEscape(ex.Message)}}}";
+            }
+        private static string HandleSnapToSurface(int instanceId)
+        {
+            try
+            {
+                var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+                if (go == null) return "{\"success\":false,\"error\":\"GameObject not found\"}";
+                
+                Undo.RecordObject(go.transform, "Snap to Surface");
+                Vector3 origin = go.transform.position + Vector3.up * 0.1f;
+                RaycastHit hit;
+                
+                if (Physics.Raycast(origin, Vector3.down, out hit, 1000f))
+                {
+                    go.transform.position = hit.point;
+                    return $"{{\"success\":true,\"snapped\":true,\"point\":{{\"x\":{hit.point.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"y\":{hit.point.y.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"z\":{hit.point.z.ToString(System.Globalization.CultureInfo.InvariantCulture)}}},\"collider\":\"{hit.collider.name}\"}}";
+                }
+                
+                // Fallback: Raycast against bounding boxes of other renderers
+                var colliders = UnityEngine.Object.FindObjectsOfType<Collider>();
+                Collider closest = null;
+                float closestDist = float.MaxValue;
+                Vector3 snapPoint = go.transform.position;
+                
+                foreach (var col in colliders)
+                {
+                    if (col.gameObject == go || col.transform.IsChildOf(go.transform)) continue;
+                    
+                    Ray ray = new Ray(go.transform.position + Vector3.up * 100f, Vector3.down);
+                    float distance;
+                    if (col.bounds.IntersectRay(ray, out distance))
+                    {
+                        float actualDist = distance - 100f;
+                        if (actualDist >= 0 && actualDist < closestDist)
+                        {
+                            closestDist = actualDist;
+                            closest = col;
+                            snapPoint = ray.GetPoint(distance);
+                        }
+                    }
+                }
+                
+                if (closest != null)
+                {
+                    go.transform.position = snapPoint;
+                    return $"{{\"success\":true,\"snapped\":true,\"point\":{{\"x\":{snapPoint.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"y\":{snapPoint.y.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"z\":{snapPoint.z.ToString(System.Globalization.CultureInfo.InvariantCulture)}}},\"collider\":\"{closest.name}\"}}";
+                }
+                
+                return "{\"success\":true,\"snapped\":false,\"message\":\"No surface collider found below the GameObject.\"}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"success\":false,\"error\":{JsonEscape(ex.Message)}}}";
+            }
+        }
+
+        private static string HandleAlignToGrid(int instanceId, float gridSize, bool alignRotation)
+        {
+            try
+            {
+                if (gridSize <= 0f) gridSize = 1f;
+                var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+                if (go == null) return "{\"success\":false,\"error\":\"GameObject not found\"}";
+                
+                Undo.RecordObject(go.transform, "Align to Grid");
+                Vector3 pos = go.transform.position;
+                pos.x = Mathf.Round(pos.x / gridSize) * gridSize;
+                pos.y = Mathf.Round(pos.y / gridSize) * gridSize;
+                pos.z = Mathf.Round(pos.z / gridSize) * gridSize;
+                go.transform.position = pos;
+                
+                if (alignRotation)
+                {
+                    Vector3 rot = go.transform.eulerAngles;
+                    rot.x = Mathf.Round(rot.x / 90f) * 90f;
+                    rot.y = Mathf.Round(rot.y / 90f) * 90f;
+                    rot.z = Mathf.Round(rot.z / 90f) * 90f;
+                    go.transform.eulerAngles = rot;
+                }
+                
+                return $"{{\"success\":true,\"position\":{{\"x\":{pos.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"y\":{pos.y.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"z\":{pos.z.ToString(System.Globalization.CultureInfo.InvariantCulture)}}}}}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"success\":false,\"error\":{JsonEscape(ex.Message)}}}";
+            }
+        }
+
+        private static string HandleDiagnoseSpatialRelations(int idA, int idB)
+        {
+            try
+            {
+                var goA = EditorUtility.InstanceIDToObject(idA) as GameObject;
+                var goB = EditorUtility.InstanceIDToObject(idB) as GameObject;
+                if (goA == null || goB == null) return "{\"success\":false,\"error\":\"One or both GameObjects not found\"}";
+                
+                Vector3 posA = goA.transform.position;
+                Vector3 posB = goB.transform.position;
+                float centerDistance = Vector3.Distance(posA, posB);
+                
+                var rendererA = goA.GetComponentInChildren<Renderer>();
+                var rendererB = goB.GetComponentInChildren<Renderer>();
+                
+                bool hasBounds = rendererA != null && rendererB != null;
+                float boundsDistance = -1f;
+                bool overlapping = false;
+                
+                if (hasBounds)
+                {
+                    Bounds bA = rendererA.bounds;
+                    Bounds bB = rendererB.bounds;
+                    overlapping = bA.Intersects(bB);
+                    
+                    boundsDistance = Mathf.Max(0f, Vector3.Distance(bA.center, bB.center) - (bA.extents.magnitude + bB.extents.magnitude));
+                }
+                
+                Vector3 direction = (posB - posA).normalized;
+                
+                return $"{{" +
+                       $"\"success\":true," +
+                       $"\"centerDistance\":{centerDistance.ToString(System.Globalization.CultureInfo.InvariantCulture)}," +
+                       $"\"hasRendererBounds\":{(hasBounds ? "true" : "false")}," +
+                       $"\"boundsDistance\":{boundsDistance.ToString(System.Globalization.CultureInfo.InvariantCulture)}," +
+                       $"\"overlapping\":{(overlapping ? "true" : "false")}," +
+                       $"\"directionFromAToB\":{{\"x\":{direction.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"y\":{direction.y.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"z\":{direction.z.ToString(System.Globalization.CultureInfo.InvariantCulture)}}}" +
+                       $"}}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"success\":false,\"error\":{JsonEscape(ex.Message)}}}";
+            }
+        }
+
+        private static string HandleGenerateLayout(string layoutType, string prefabPath, int count, float spacing, int columns, float radius, int parentId)
+        {
+            try
+            {
+                if (count <= 0) count = 5;
+                if (spacing <= 0f) spacing = 2f;
+                if (columns <= 0) columns = 5;
+                if (radius <= 0f) radius = 5f;
+                if (string.IsNullOrEmpty(layoutType)) layoutType = "row";
+
+                GameObject prefab = null;
+                if (!string.IsNullOrEmpty(prefabPath))
+                {
+                    prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                    if (prefab == null) return $"{{\"success\":false,\"error\":\"Prefab not found at path: {prefabPath}\"}}";
+                }
+                
+                GameObject parent = null;
+                if (parentId != 0)
+                {
+                    parent = EditorUtility.InstanceIDToObject(parentId) as GameObject;
+                }
+                if (parent == null)
+                {
+                    parent = new GameObject("Generated Layout (" + layoutType + ")");
+                    Undo.RegisterCreatedObjectUndo(parent, "Create Layout Parent");
+                }
+                
+                var createdIds = new List<int>();
+                
+                for (int i = 0; i < count; i++)
+                {
+                    GameObject go = prefab != null ? PrefabUtility.InstantiatePrefab(prefab) as GameObject : new GameObject("LayoutItem_" + i);
+                    Undo.RegisterCreatedObjectUndo(go, "Create Layout Item");
+                    go.transform.SetParent(parent.transform);
+                    
+                    Vector3 pos = Vector3.zero;
+                    if (layoutType.ToLower() == "row")
+                    {
+                        pos = new Vector3(i * spacing, 0f, 0f);
+                    }
+                    else if (layoutType.ToLower() == "grid")
+                    {
+                        int col = i % columns;
+                        int row = i / columns;
+                        pos = new Vector3(col * spacing, 0f, row * spacing);
+                    }
+                    else if (layoutType.ToLower() == "circle")
+                    {
+                        float angle = i * (360f / count) * Mathf.Deg2Rad;
+                        pos = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                        go.transform.rotation = Quaternion.LookRotation(-pos, Vector3.up);
+                    }
+                    
+                    go.transform.localPosition = pos;
+                    createdIds.Add(go.GetInstanceID());
+                }
+                
+                return $"{{\"success\":true,\"parentInstanceId\":{parent.GetInstanceID()},\"count\":{count},\"itemIds\":[{string.Join(",", createdIds)}]}}";
             }
             catch (Exception ex)
             {
