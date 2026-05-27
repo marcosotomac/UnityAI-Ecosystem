@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from "fs";
 import * as path from "path";
-import { spawn, exec } from "child_process";
+import { spawn, exec, execSync } from "child_process";
 import { homedir } from "os";
 import { promisify } from "util";
 import * as http from "http";
@@ -398,12 +398,60 @@ function handleStart() {
   });
 }
 
+function getAdbPath(): string {
+  const home = process.env.HOME || homedir();
+  const possiblePaths = [
+    "adb",
+    path.join(home, "Library/Android/sdk/platform-tools/adb"),
+    "/opt/homebrew/bin/adb",
+    "/usr/local/bin/adb",
+  ];
+
+  for (const adbPath of possiblePaths) {
+    if (adbPath === "adb") {
+      try {
+        execSync("which adb", { stdio: "ignore" });
+        return "adb";
+      } catch (e) {}
+    } else if (fs.existsSync(adbPath)) {
+      return adbPath;
+    }
+  }
+
+  return "adb";
+}
+
 async function runAdb(args: string): Promise<string> {
+  const adbBin = getAdbPath();
   try {
-    const { stdout } = await execPromise(`adb ${args}`);
+    const { stdout } = await execPromise(`"${adbBin}" ${args}`);
     return stdout;
   } catch (error: any) {
-    throw new Error(`ADB failed: ${error.message}`);
+    const stderr = (error.stderr || error.message || "").toString();
+
+    // Friendly diagnostics mapping
+    if (stderr.includes("device not found") || stderr.includes("no devices/emulators found")) {
+      throw new Error(
+        "No Meta Quest headset detected via ADB. Check USB connection, Developer Mode, and verify it is turned on."
+      );
+    }
+    if (stderr.includes("device unauthorized")) {
+      throw new Error(
+        "Quest headset is unauthorized. Please accept the 'Allow USB debugging' prompt inside the VR headset."
+      );
+    }
+    if (stderr.includes("INSTALL_FAILED_UPDATE_INCOMPATIBLE")) {
+      throw new Error(
+        "Installation failed: Signature/version mismatch. Please uninstall the app from your Quest headset first."
+      );
+    }
+    if (error.code === "ENOENT" || stderr.includes("command not found")) {
+      throw new Error(
+        "ADB not found. Install it (e.g. via Homebrew: 'brew install android-platform-tools') or Android Studio."
+      );
+    }
+
+    throw new Error(`ADB failed: ${stderr.trim()}`);
   }
 }
 
