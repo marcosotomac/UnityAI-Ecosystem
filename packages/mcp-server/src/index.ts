@@ -18,28 +18,41 @@ const execPromise = promisify(exec);
 const UNITY_PORT = 3024;
 const UNITY_URL = `http://localhost:${UNITY_PORT}`;
 
-// Helper to locate ADB executable path on macOS / fallback
+// Helper to locate ADB executable path on macOS and Windows
 function getAdbPath(): string {
-  const home = process.env.HOME || homedir();
-  const possiblePaths = [
-    "adb", // Default fallback to system PATH
-    path.join(home, "Library/Android/sdk/platform-tools/adb"), // macOS Android Studio location
-    "/opt/homebrew/bin/adb", // Apple Silicon Homebrew
-    "/usr/local/bin/adb", // Intel Homebrew / Standard location
-  ];
+  const isWin = process.platform === "win32";
+  const adbBinName = isWin ? "adb.exe" : "adb";
+  
+  // 1. Try global PATH first
+  try {
+    const checkCmd = isWin ? `where ${adbBinName}` : `which ${adbBinName}`;
+    execSync(checkCmd, { stdio: "ignore" });
+    return adbBinName;
+  } catch (e) {}
+
+  const home = homedir();
+  const possiblePaths: string[] = [];
+
+  if (isWin) {
+    // Windows standard locations
+    possiblePaths.push(path.join(home, "AppData", "Local", "Android", "Sdk", "platform-tools", "adb.exe"));
+    possiblePaths.push("C:\\Program Files (x86)\\Android\\android-sdk\\platform-tools\\adb.exe");
+    possiblePaths.push("C:\\Program Files\\Android\\android-sdk\\platform-tools\\adb.exe");
+  } else {
+    // macOS / Linux standard locations
+    possiblePaths.push(path.join(home, "Library", "Android", "sdk", "platform-tools", "adb"));
+    possiblePaths.push("/opt/homebrew/bin/adb");
+    possiblePaths.push("/usr/local/bin/adb");
+    possiblePaths.push("/usr/bin/adb");
+  }
 
   for (const adbPath of possiblePaths) {
-    if (adbPath === "adb") {
-      try {
-        execSync("which adb", { stdio: "ignore" });
-        return "adb";
-      } catch (e) {}
-    } else if (fs.existsSync(adbPath)) {
+    if (fs.existsSync(adbPath)) {
       return adbPath;
     }
   }
 
-  return "adb";
+  return adbBinName;
 }
 
 // Helper to run ADB command with advanced error diagnostics
