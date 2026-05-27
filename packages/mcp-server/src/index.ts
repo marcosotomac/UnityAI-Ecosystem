@@ -178,6 +178,77 @@ function walkDir(dir: string, fileList: string[] = []): string[] {
   return fileList;
 }
 
+function getOfflineUnityVersion(projectPath: string): string {
+  try {
+    const versionPath = path.join(projectPath, "ProjectSettings", "ProjectVersion.txt");
+    if (fs.existsSync(versionPath)) {
+      const content = fs.readFileSync(versionPath, "utf-8");
+      const match = content.match(/m_EditorVersion:\s*(.*)/);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+  } catch (e) {}
+  return "Unknown (Offline)";
+}
+
+function getOfflinePackages(projectPath: string): Record<string, string> {
+  try {
+    const manifestPath = path.join(projectPath, "Packages", "manifest.json");
+    if (fs.existsSync(manifestPath)) {
+      const content = fs.readFileSync(manifestPath, "utf-8");
+      const parsed = JSON.parse(content);
+      return parsed.dependencies || {};
+    }
+  } catch (e) {}
+  return {};
+}
+
+function getOfflineProjectSettings(projectPath: string) {
+  let colorSpace = "Unknown";
+  try {
+    const settingsPath = path.join(projectPath, "ProjectSettings", "ProjectSettings.asset");
+    if (fs.existsSync(settingsPath)) {
+      const content = fs.readFileSync(settingsPath, "utf-8");
+      const colorSpaceMatch = content.match(/colorSpace:\s*(\d+)/);
+      if (colorSpaceMatch && colorSpaceMatch[1]) {
+        colorSpace = colorSpaceMatch[1] === "1" ? "Linear" : "Gamma";
+      }
+    }
+  } catch (e) {}
+  return { colorSpace };
+}
+
+function getOfflineProjectMap(projectPath: string) {
+  const assetsDir = path.join(projectPath, "Assets");
+  if (!fs.existsSync(assetsDir)) {
+    return { success: false, error: "Assets directory not found" };
+  }
+  
+  const allFiles = walkDir(assetsDir);
+  const scenes: string[] = [];
+  const prefabs: string[] = [];
+  const scripts: string[] = [];
+  const asmdefs: string[] = [];
+
+  for (const file of allFiles) {
+    const relPath = path.relative(projectPath, file).replace(/\\/g, "/");
+    if (file.endsWith(".unity")) scenes.push(relPath);
+    else if (file.endsWith(".prefab")) prefabs.push(relPath);
+    else if (file.endsWith(".cs")) scripts.push(relPath);
+    else if (file.endsWith(".asmdef")) asmdefs.push(relPath);
+  }
+
+  return {
+    success: true,
+    editorOnline: false,
+    scenes,
+    prefabs,
+    scripts,
+    assemblyDefinitions: asmdefs
+  };
+}
+
 const server = new Server(
   {
     name: "unity-mcp-server",
@@ -532,8 +603,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case "unity_ping": {
-        const data = await callUnityPlugin("ping");
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        try {
+          const data = await callUnityPlugin("ping");
+          return { content: [{ type: "text", text: JSON.stringify({ ...data, editorOnline: true }, null, 2) }] };
+        } catch (e: any) {
+          if (e.message.includes("Could not connect to Unity Editor")) {
+            const projectPath = process.cwd();
+            const offlineVersion = getOfflineUnityVersion(projectPath);
+            const offlinePackages = getOfflinePackages(projectPath);
+            const offlineSettings = getOfflineProjectSettings(projectPath);
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    success: true,
+                    editorOnline: false,
+                    unityVersion: offlineVersion,
+                    projectPath: projectPath,
+                    colorSpace: offlineSettings.colorSpace,
+                    activePackages: offlinePackages,
+                    message: "Unity Editor is offline. Showing project details read directly from local files on disk.",
+                    tip: "Open Unity and start the C# server (Tools > Unity AI > Start Server) to interact with the hierarchy, scene, and build features."
+                  }, null, 2)
+                }
+              ]
+            };
+          }
+          throw e;
+        }
       }
       case "unity_get_scene_hierarchy": {
         const data = await callUnityPlugin("get_hierarchy");
@@ -609,12 +707,47 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
       }
       case "unity_get_project_context": {
-        const data = await callUnityPlugin("get_project_context");
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        try {
+          const data = await callUnityPlugin("get_project_context");
+          return { content: [{ type: "text", text: JSON.stringify({ ...data, editorOnline: true }, null, 2) }] };
+        } catch (e: any) {
+          if (e.message.includes("Could not connect to Unity Editor")) {
+            const projectPath = process.cwd();
+            const offlineVersion = getOfflineUnityVersion(projectPath);
+            const offlinePackages = getOfflinePackages(projectPath);
+            const offlineSettings = getOfflineProjectSettings(projectPath);
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    success: true,
+                    editorOnline: false,
+                    unityVersion: offlineVersion,
+                    projectPath: projectPath,
+                    colorSpace: offlineSettings.colorSpace,
+                    packages: { dependencies: offlinePackages },
+                    message: "Unity Editor is offline. Displaying local configuration context from disk."
+                  }, null, 2)
+                }
+              ]
+            };
+          }
+          throw e;
+        }
       }
       case "unity_get_project_map": {
-        const data = await callUnityPlugin("get_project_map");
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        try {
+          const data = await callUnityPlugin("get_project_map");
+          return { content: [{ type: "text", text: JSON.stringify({ ...data, editorOnline: true }, null, 2) }] };
+        } catch (e: any) {
+          if (e.message.includes("Could not connect to Unity Editor")) {
+            const projectPath = process.cwd();
+            const offlineData = getOfflineProjectMap(projectPath);
+            return { content: [{ type: "text", text: JSON.stringify(offlineData, null, 2) }] };
+          }
+          throw e;
+        }
       }
       case "unity_run_tests": {
         const data = await callUnityPlugin("run_tests");
