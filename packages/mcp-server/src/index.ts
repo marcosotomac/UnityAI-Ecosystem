@@ -591,6 +591,59 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: "object",
           properties: {}
         }
+      },
+      {
+        name: "unity_snap_to_surface",
+        description: "High-precision layout helper that snaps a GameObject's Y-coordinate down onto the nearest surface collider or mesh bounds directly below it.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            instanceId: { type: "number", description: "Instance ID of the GameObject to snap." }
+          },
+          required: ["instanceId"]
+        }
+      },
+      {
+        name: "unity_align_to_grid",
+        description: "High-precision layout helper that aligns a GameObject's position to a defined grid (e.g. 1m grid) and optionally snaps rotation to 90-degree increments.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            instanceId: { type: "number", description: "Instance ID of the GameObject." },
+            gridSize: { type: "number", description: "Size of the grid in meters (default is 1.0)." },
+            alignRotation: { type: "boolean", description: "If true, aligns rotation to the nearest 90 degrees." }
+          },
+          required: ["instanceId"]
+        }
+      },
+      {
+        name: "unity_diagnose_spatial_relations",
+        description: "Audits exact distances, overlaps, bounds intersections, and relative directions between two GameObjects to ensure precision spacing.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            instanceId: { type: "number", description: "Instance ID of GameObject A." },
+            targetInstanceId: { type: "number", description: "Instance ID of GameObject B." }
+          },
+          required: ["instanceId", "targetInstanceId"]
+        }
+      },
+      {
+        name: "unity_generate_layout",
+        description: "Procedural layout tool that generates precise rows, grids, or circles of GameObjects/prefabs automatically.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            layoutType: { type: "string", enum: ["row", "grid", "circle"], description: "Type of layout pattern." },
+            prefabPath: { type: "string", description: "Optional project-relative path to a Prefab asset (e.g. 'Assets/Prefabs/Fence.prefab'). If omitted, creates empty GameObjects." },
+            count: { type: "number", description: "Number of elements to generate." },
+            spacing: { type: "number", description: "Spacing between elements in meters." },
+            columns: { type: "number", description: "For grid layout: number of columns." },
+            radius: { type: "number", description: "For circle layout: radius in meters." },
+            parentId: { type: "number", description: "Optional Instance ID of parent GameObject. If omitted, creates a new layout group GameObject." }
+          },
+          required: ["layoutType", "count"]
+        }
       }
     ]
   };
@@ -1001,6 +1054,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
           ]
         };
+      }
+      case "unity_snap_to_surface": {
+        const instanceId = args?.instanceId as number;
+        const data = await callUnityPlugin("snap_to_surface", { instanceId });
+        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+      }
+      case "unity_align_to_grid": {
+        const instanceId = args?.instanceId as number;
+        const gridSize = (args?.gridSize as number) || 1.0;
+        const alignRotation = !!args?.alignRotation;
+        const data = await callUnityPlugin("align_to_grid", { instanceId, gridSize, alignRotation });
+        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+      }
+      case "unity_diagnose_spatial_relations": {
+        const instanceId = args?.instanceId as number;
+        const targetInstanceId = args?.targetInstanceId as number;
+        const data = await callUnityPlugin("diagnose_spatial_relations", { instanceId, targetInstanceId });
+        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+      }
+      case "unity_generate_layout": {
+        const layoutType = args?.layoutType as string;
+        const prefabPath = (args?.prefabPath as string) || "";
+        const count = args?.count as number;
+        const spacing = (args?.spacing as number) || 2.0;
+        const columns = (args?.columns as number) || 5;
+        const radius = (args?.radius as number) || 5.0;
+        const parentId = (args?.parentId as number) || 0;
+        const data = await callUnityPlugin("generate_layout", { layoutType, prefabPath, count, spacing, columns, radius, parentId });
+        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
       }
       default:
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
