@@ -336,9 +336,28 @@ ${JSON.stringify(response.data, null, 2)}
 `);
     }
   } catch (error: any) {
+    let offlineVersion = "Unknown";
+    const projectPath = process.cwd();
+    try {
+      const versionPath = path.join(projectPath, "ProjectSettings", "ProjectVersion.txt");
+      if (fs.existsSync(versionPath)) {
+        const content = fs.readFileSync(versionPath, "utf-8");
+        const match = content.match(/m_EditorVersion:\s*(.*)/);
+        if (match && match[1]) {
+          offlineVersion = match[1].trim();
+        }
+      }
+    } catch (e) {}
+
     console.log(`
 ${red}✖ Connection failed.${reset}
 Could not connect to the Unity Editor on port ${PORT}.
+
+${bold}Offline Project Metadata (Read from disk):${reset}
+----------------------------------------
+Unity Version:   ${bold}${offlineVersion}${reset}
+Project Path:    ${bold}${projectPath}${reset}
+----------------------------------------
 
 ${bold}Troubleshooting checklist:${reset}
 1. Is the Unity Editor running?
