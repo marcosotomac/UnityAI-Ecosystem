@@ -379,12 +379,14 @@ function handleStart() {
   }
 
   const child = spawn("node", [serverPath], {
-    stdio: ["inherit", "pipe", "inherit"]
+    stdio: ["pipe", "pipe", "inherit"]
   });
 
-  child.stdout.on("data", (data) => {
-    process.stdout.write(data);
-  });
+  // Explicitly pipe parent standard input to the child server
+  process.stdin.pipe(child.stdin);
+
+  // Explicitly pipe child standard output back to parent standard output
+  child.stdout.pipe(process.stdout);
 
   child.on("close", (code) => {
     process.exit(code ?? 0);
