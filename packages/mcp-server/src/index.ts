@@ -9,23 +9,113 @@ import {
 import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { promisify } from "util";
+import { homedir } from "os";
 
 const execPromise = promisify(exec);
 
 const UNITY_PORT = 3024;
 const UNITY_URL = `http://localhost:${UNITY_PORT}`;
 
-// Helper to run ADB command
+// Helper to locate ADB executable path on macOS / fallback
+function getAdbPath(): string {
+  const home = process.env.HOME || homedir();
+  const possiblePaths = [
+    "adb", // Default fallback to system PATH
+    path.join(home, "Library/Android/sdk/platform-tools/adb"), // macOS Android Studio location
+    "/opt/homebrew/bin/adb", // Apple Silicon Homebrew
+    "/usr/local/bin/adb", // Intel Homebrew / Standard location
+  ];
+
+  for (const adbPath of possiblePaths) {
+    if (adbPath === "adb") {
+      try {
+        execSync("which adb", { stdio: "ignore" });
+        return "adb";
+      } catch (e) {}
+    } else if (fs.existsSync(adbPath)) {
+      return adbPath;
+    }
+  }
+
+  return "adb";
+}
+
+// Helper to run ADB command with advanced error diagnostics
 async function runAdbCommand(args: string): Promise<string> {
+  const adbBin = getAdbPath();
   try {
-    const { stdout } = await execPromise(`adb ${args}`);
+    const { stdout } = await execPromise(`"${adbBin}" ${args}`);
+    
+    // Check for common error messages printed to stdout
+    if (stdout.includes("Error: Activity class") && stdout.includes("does not exist")) {
+      throw new Error(
+        `Quest App Launch failed. The Activity class does not exist.\n` +
+        `This usually means the package is not installed on the headset, or the activity path is custom.\n` +
+        `ADB Output: ${stdout.trim()}`
+      );
+    }
+    
     return stdout;
   } catch (error: any) {
-    throw new Error(
-      `ADB command failed: ${error.message}. Please ensure Android Platform Tools (adb) are installed and added to your system PATH.`
-    );
+    const stderr = (error.stderr || error.message || "").toString();
+    
+    // 1. No device connected
+    if (stderr.includes("device not found") || stderr.includes("no devices/emulators found")) {
+      throw new Error(
+        "No Meta Quest VR headset detected via ADB.\n" +
+        "Troubleshooting Checklist:\n" +
+        "1. Verify that your headset is powered on and connected to this computer with a USB-C link cable.\n" +
+        "2. Ensure Developer Mode is toggled ON in your Meta Quest mobile application (Settings > Device > Developer Mode).\n" +
+        "3. Put on the headset and check if there is a 'USB connection type' dialog; set it to transfer files.\n" +
+        "4. Unlock the headset screen to verify it is active."
+      );
+    }
+    
+    // 2. Unauthorized connection
+    if (stderr.includes("device unauthorized")) {
+      throw new Error(
+        "Meta Quest headset detected, but it is UNAUTHORIZED.\n" +
+        "Please put on the VR headset and look for the 'Allow USB debugging' prompt. " +
+        "Select 'Always allow from this computer' so you do not have to authorize it again."
+      );
+    }
+
+    // 3. Multiple devices
+    if (stderr.includes("more than one device")) {
+      throw new Error(
+        "Multiple ADB devices or emulators are connected.\n" +
+        "Please disconnect other Android devices or specify the target device ID in your ADB environment."
+      );
+    }
+
+    // 4. Install signature mismatch / update incompatible
+    if (stderr.includes("INSTALL_FAILED_UPDATE_INCOMPATIBLE")) {
+      throw new Error(
+        "Installation failed due to a package signature/version conflict (INSTALL_FAILED_UPDATE_INCOMPATIBLE).\n" +
+        "Please uninstall the existing version of the app from the Quest headset before installing this build."
+      );
+    }
+
+    // 5. Out of storage space
+    if (stderr.includes("INSTALL_FAILED_INSUFFICIENT_STORAGE")) {
+      throw new Error(
+        "Installation failed: Insufficient storage space on the Meta Quest headset.\n" +
+        "Please delete unused apps or files on the headset and try again."
+      );
+    }
+
+    // 6. ADB binary command not found
+    if (error.code === "ENOENT" || stderr.includes("command not found") || stderr.includes("not recognized")) {
+      throw new Error(
+        "ADB (Android Debug Bridge) command could not be located.\n" +
+        "Please make sure Android Platform Tools (adb) are installed. " +
+        "On macOS, you can install it via Homebrew: 'brew install android-platform-tools'."
+      );
+    }
+
+    throw new Error(`ADB command failed: ${stderr.trim()}`);
   }
 }
 
@@ -470,6 +560,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
       case "unity_control_playmode": {
         const state = args?.state as string;
+        if (state === "play") {
+          try {
+            const errorsResponse = await callUnityPlugin("get_compiler_errors");
+            if (errorsResponse && errorsResponse.success && errorsResponse.errors && errorsResponse.errors.length > 0) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      success: false,
+                      error: "Cannot enter Play Mode: The Unity project has C# compilation errors. Please fix them first.",
+                      errors: errorsResponse.errors,
+                      tip: "Use the 'unity_autofix_compiler_errors' tool to automatically inspect and attempt to heal these errors."
+                    }, null, 2)
+                  }
+                ]
+              };
+            }
+          } catch (e) {}
+        }
         const data = await callUnityPlugin("control_playmode", { playModeState: state });
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
       }
@@ -506,11 +616,49 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
       }
       case "unity_build_project": {
+        try {
+          const errorsResponse = await callUnityPlugin("get_compiler_errors");
+          if (errorsResponse && errorsResponse.success && errorsResponse.errors && errorsResponse.errors.length > 0) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    success: false,
+                    error: "Build cancelled: The Unity project has C# compilation errors. You must fix all compilation errors before building standalone players.",
+                    errors: errorsResponse.errors,
+                    tip: "Use the 'unity_autofix_compiler_errors' tool to automatically inspect and attempt to heal these errors."
+                  }, null, 2)
+                }
+              ]
+            };
+          }
+        } catch (e) {}
+
         const outputPath = args?.outputPath as string;
         const data = await callUnityPlugin("build_project", { fieldValue: outputPath });
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
       }
       case "unity_build_and_archive": {
+        try {
+          const errorsResponse = await callUnityPlugin("get_compiler_errors");
+          if (errorsResponse && errorsResponse.success && errorsResponse.errors && errorsResponse.errors.length > 0) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    success: false,
+                    error: "Build and archive cancelled: The Unity project has C# compilation errors. You must fix all compilation errors before building standalone players.",
+                    errors: errorsResponse.errors,
+                    tip: "Use the 'unity_autofix_compiler_errors' tool to automatically inspect and attempt to heal these errors."
+                  }, null, 2)
+                }
+              ]
+            };
+          }
+        } catch (e) {}
+
         const outputPath = args?.outputPath as string;
         const data = await callUnityPlugin("build_and_archive", { fieldValue: outputPath });
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
@@ -591,6 +739,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify({ success: true, stdout, savedTo: localPath }, null, 2) }] };
       }
       case "unity_execute_script": {
+        try {
+          const errorsResponse = await callUnityPlugin("get_compiler_errors");
+          if (errorsResponse && errorsResponse.success && errorsResponse.errors && errorsResponse.errors.length > 0) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    success: false,
+                    error: "Script execution cancelled: The Unity project has C# compilation errors. Code evaluation relies on dynamic compilation and requires a clean project state.",
+                    errors: errorsResponse.errors,
+                    tip: "Use the 'unity_autofix_compiler_errors' tool to heal these compilation errors first."
+                  }, null, 2)
+                }
+              ]
+            };
+          }
+        } catch (e) {}
+
         const code = args?.code as string;
         const data = await callUnityPlugin("eval_csharp", { code });
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
