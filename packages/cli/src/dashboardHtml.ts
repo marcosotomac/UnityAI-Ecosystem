@@ -26,12 +26,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'JetBrains Mono', monospace;
             background-color: var(--bg);
             color: var(--text);
             overflow: hidden;
             height: 100vh;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         header {
