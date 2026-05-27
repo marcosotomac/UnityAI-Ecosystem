@@ -1,0 +1,19 @@
+{
+  "name": "unity-ai-cli",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "bin": {
+    "unity-ai": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

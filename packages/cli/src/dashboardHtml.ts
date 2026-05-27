@@ -1,0 +1,1104 @@
+export const DASHBOARD_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity AI Developer Ecosystem - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #00d2ff;
+            --primary-glow: rgba(0, 210, 255, 0.2);
+            --secondary: #ff007f;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 127, 0.05) 0px, transparent 50%);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background-color: rgba(11, 15, 25, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            height: 64px;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), #9d4edd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.online {
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .status-dot.offline {
+            background-color: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+
+        /* Layout Grid */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 340px;
+            grid-template-rows: calc(100vh - 64px - 220px) 220px;
+            height: calc(100vh - 64px);
+        }
+
+        /* Panel Common */
+        .panel {
+            background-color: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-content {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Sidebar Left (Quest & Control) */
+        .sidebar-left {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            border-top: none;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .menu-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #00a8ff);
+            border: none;
+            color: #05070f;
+            font-weight: 600;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #33e0ff, var(--primary));
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger);
+        }
+
+        /* Main Workspace */
+        .main-workspace {
+            grid-column: 2;
+            grid-row: 1;
+            border-top: none;
+            border-bottom: none;
+            display: grid;
+            grid-template-rows: 1fr 180px;
+        }
+
+        .scene-container {
+            padding: 16px;
+            overflow-y: auto;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Tree Styles */
+        .tree-node {
+            margin-left: 12px;
+            position: relative;
+        }
+
+        .tree-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            user-select: none;
+            transition: background-color 0.15s ease;
+        }
+
+        .tree-header:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .tree-header.selected {
+            background-color: var(--primary-glow);
+            border-left: 2px solid var(--primary);
+        }
+
+        .tree-toggle {
+            width: 12px;
+            height: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .tree-children {
+            display: none;
+            border-left: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-left: 6px;
+            padding-left: 6px;
+        }
+
+        .tree-children.expanded {
+            display: block;
+        }
+
+        .gameobject-icon {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .gameobject-icon.inactive {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* Charts / Profiler Area */
+        .profiler-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px;
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .chart-box {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chart-value {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        canvas {
+            width: 100%;
+            height: 110px;
+            background-color: transparent;
+        }
+
+        /* Sidebar Right (Inspector) */
+        .sidebar-right {
+            grid-column: 3;
+            grid-row: 1 / 3;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .inspector-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 12px;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .inspector-icon {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.05);
+        }
+
+        .component-card {
+            border: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .component-header {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary);
+        }
+
+        .component-properties {
+            padding: 8px 12px;
+        }
+
+        .property-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            font-size: 0.75rem;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .property-name {
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .property-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: #e5c07b;
+            word-break: break-all;
+        }
+
+        /* Bottom Panel (Logs Console) */
+        .bottom-console {
+            grid-column: 2;
+            grid-row: 2;
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .log-list {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .log-row {
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            transition: background-color 0.1s ease;
+        }
+
+        .log-row:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            width: 70px;
+            flex-shrink: 0;
+        }
+
+        .log-type-badge {
+            width: 60px;
+            flex-shrink: 0;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 3px;
+            padding: 0 4px;
+        }
+
+        .log-type-Log { background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
+        .log-type-Warning { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+        .log-type-Error { background-color: rgba(239, 104, 104, 0.1); color: #f87171; }
+        .log-type-Exception { background-color: rgba(239, 104, 104, 0.1); color: #f87171; }
+
+        .log-msg {
+            color: var(--text-main);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Quest Screenshot Modal/Viewer */
+        .screenshot-container {
+            width: 100%;
+            height: 120px;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            overflow: hidden;
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .screenshot-placeholder {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 2px solid var(--primary);
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-dot"></div>
+            UNITY AI DEVELOPER ECOSYSTEM
+        </div>
+        <div class="status-indicators">
+            <div class="status-badge">
+                <span class="status-dot" id="unity-status-dot"></span>
+                Unity Editor (Port 3024)
+            </div>
+            <div class="status-badge">
+                <span class="status-dot" id="quest-status-dot"></span>
+                Android ADB Device
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- LEFT: VR Meta Quest & Controls -->
+        <aside class="panel sidebar-left">
+            <div class="panel-header">
+                <div class="panel-title">VR Meta Quest Integration</div>
+            </div>
+            <div class="panel-content custom-scroll" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="menu-item">
+                    <div class="menu-title">ADB Diagnostics</div>
+                    <button class="btn" id="btn-adb-devices">List ADB Devices</button>
+                    <div id="adb-devices-output" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">No devices checked</div>
+                </div>
+
+                <div class="menu-item">
+                    <div class="menu-title">Deployment</div>
+                    <button class="btn btn-primary" id="btn-quest-install">Install APK on Headset</button>
+                    <button class="btn" id="btn-quest-launch">Launch App on Quest</button>
+                </div>
+
+                <div class="menu-item">
+                    <div class="menu-title">Visual Capture</div>
+                    <button class="btn" id="btn-quest-screenshot">Pull Headset Screenshot</button>
+                    <div class="screenshot-container" id="screenshot-box">
+                        <div class="screenshot-placeholder" id="screenshot-text">No screenshot captured</div>
+                        <img src="" class="screenshot-img" id="screenshot-img" style="display:none;" />
+                    </div>
+                </div>
+
+                <div class="menu-item">
+                    <div class="menu-title">Quest Debug Logs</div>
+                    <button class="btn" id="btn-quest-logs">Stream Quest Logcat</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER WORKSPACE: Hierarchy & Charts -->
+        <main class="main-workspace">
+            <!-- Scene Hierarchy -->
+            <div class="scene-container custom-scroll">
+                <div class="panel-header" style="padding: 0 0 12px 0; margin-bottom: 12px; background: transparent; border-bottom: 1px solid var(--border-color);">
+                    <div class="panel-title">Active Scene Hierarchy</div>
+                    <button class="btn" id="btn-refresh-hierarchy" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">Refresh Tree</button>
+                </div>
+                <div id="scene-tree-root">Loading hierarchy...</div>
+            </div>
+
+            <!-- Charts & Performance -->
+            <div class="profiler-container">
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>CPU FRAMERATE</span>
+                        <span class="chart-value" id="fps-val">0.0 FPS</span>
+                    </div>
+                    <canvas id="fps-chart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>GC ALLOCATIONS (FRAME DELTA)</span>
+                        <span class="chart-value" id="gc-val">0.0 KB</span>
+                    </div>
+                    <canvas id="gc-chart"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT: Component Inspector -->
+        <aside class="panel sidebar-right">
+            <div class="panel-header">
+                <div class="panel-title">Inspector</div>
+                <button class="btn" id="btn-editor-focus" style="width: auto; padding: 4px 10px; font-size: 0.75rem; display: none;">Focus in Editor</button>
+            </div>
+            <div class="panel-content custom-scroll" id="inspector-content">
+                <div class="inspector-placeholder">
+                    <div class="inspector-icon">🔍</div>
+                    Select a GameObject in the hierarchy tree to inspect its components, fields, and reflection values in real-time.
+                </div>
+            </div>
+        </aside>
+
+        <!-- BOTTOM Console Logs -->
+        <footer class="panel bottom-console">
+            <div class="panel-header">
+                <div class="panel-title">Unity Editor Console Stream</div>
+                <button class="btn" id="btn-clear-logs" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">Clear Console</button>
+            </div>
+            <div class="panel-content custom-scroll" id="logs-container">
+                <div class="log-list" id="log-list-content">
+                    <div class="log-row">
+                        <span class="log-time">00:00:00</span>
+                        <span class="log-type-badge log-type-Log">SYSTEM</span>
+                        <span class="log-msg">Console log stream initialized. Awaiting connection...</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const UNITY_PORT = 3024;
+        const DASHBOARD_PORT = 3025;
+        const UNITY_URL = \`http://localhost:\${UNITY_PORT}\`;
+
+        let selectedInstanceId = null;
+        let isConnectedToUnity = false;
+
+        // Sliding arrays for chart rendering
+        const fpsHistory = Array(60).fill(0);
+        const gcHistory = Array(60).fill(0);
+
+        // Canvas setups
+        const fpsCanvas = document.getElementById('fps-chart');
+        const gcCanvas = document.getElementById('gc-chart');
+        const fpsCtx = fpsCanvas.getContext('2d');
+        const gcCtx = gcCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            fpsCanvas.width = fpsCanvas.parentElement.clientWidth - 16;
+            gcCanvas.width = gcCanvas.parentElement.clientWidth - 16;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawChart(ctx, data, color, maxVal = 60) {
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < width; i += width / 6) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < height; i += height / 4) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(width, i);
+                ctx.stroke();
+            }
+
+            // Draw line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const step = width / (data.length - 1);
+            for (let i = 0; i < data.length; i++) {
+                const val = data[i];
+                const x = i * step;
+                const ratio = maxVal > 0 ? val / maxVal : 0;
+                const y = height - (Math.min(ratio, 1.0) * (height - 10)) - 5;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw area gradient
+            ctx.fillStyle = color.replace(')', ', 0.08)').replace('rgb', 'rgba');
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Call Unity C# REST Endpoint
+        async function callUnity(action, params = {}) {
+            try {
+                const response = await fetch(UNITY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...params })
+                });
+                return await response.json();
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        }
+
+        // Call local CLI dashboard API endpoints
+        async function callLocalApi(endpoint, params = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+                return await response.json();
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        }
+
+        // Live Performance & Ping check
+        async function updatePerformance() {
+            if (!isConnectedToUnity) {
+                setUnityStatus(false);
+                return;
+            }
+
+            // Fetch metrics
+            const metrics = await callUnity('get_performance_metrics');
+            if (metrics.success) {
+                setUnityStatus(true);
+            } else {
+                setUnityStatus(false);
+                return;
+            }
+
+            const profiler = await callUnity('get_profiler_report');
+            if (profiler.success) {
+                const fps = parseFloat(profiler.averageFPS) || 0;
+                const gc = parseFloat(profiler.averageGCAllocKb) || 0;
+
+                document.getElementById('fps-val').innerText = fps.toFixed(1) + ' FPS';
+                document.getElementById('gc-val').innerText = gc.toFixed(1) + ' KB';
+
+                fpsHistory.push(fps);
+                fpsHistory.shift();
+
+                gcHistory.push(gc);
+                gcHistory.shift();
+
+                drawChart(fpsCtx, fpsHistory, 'rgb(16, 185, 129)', 90);
+                // Dynamically scale memory peak
+                const maxGc = Math.max(...gcHistory, 50);
+                drawChart(gcCtx, gcHistory, 'rgb(0, 210, 255)', maxGc);
+            }
+        }
+
+        function setUnityStatus(online) {
+            isConnectedToUnity = online;
+            const dot = document.getElementById('unity-status-dot');
+            if (online) {
+                dot.className = 'status-dot online';
+            } else {
+                dot.className = 'status-dot offline';
+                document.getElementById('fps-val').innerText = '0.0 FPS';
+                document.getElementById('gc-val').innerText = '0.0 KB';
+            }
+        }
+
+        // Hierarchy Renderer
+        async function refreshHierarchy() {
+            const root = document.getElementById('scene-tree-root');
+            if (!isConnectedToUnity) {
+                root.innerHTML = '<span style="color: var(--danger)">✖ Editor disconnected. Start server in Unity.</span>';
+                return;
+            }
+
+            root.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Loading...</div>';
+            const data = await callUnity('get_hierarchy');
+            if (data.success && data.hierarchy) {
+                root.innerHTML = '';
+                data.hierarchy.forEach(node => {
+                    root.appendChild(createTreeNode(node));
+                });
+            } else {
+                root.innerHTML = '<span style="color: var(--danger)">Error loading hierarchy.</span>';
+            }
+        }
+
+        function createTreeNode(node) {
+            const container = document.createElement('div');
+            container.className = 'tree-node';
+
+            const header = document.createElement('div');
+            header.className = 'tree-header';
+            if (selectedInstanceId === node.instanceId) {
+                header.classList.add('selected');
+            }
+
+            const toggle = document.createElement('span');
+            toggle.className = 'tree-toggle';
+            toggle.innerHTML = node.children && node.children.length > 0 ? '▶' : '&nbsp;&nbsp;';
+
+            const icon = document.createElement('span');
+            icon.className = 'gameobject-icon';
+            icon.innerHTML = '⬢ ';
+            if (!node.active) {
+                icon.classList.add('inactive');
+            }
+
+            const name = document.createElement('span');
+            name.innerText = node.name;
+            name.style.opacity = node.active ? '1.0' : '0.4';
+
+            header.appendChild(toggle);
+            header.appendChild(icon);
+            header.appendChild(name);
+            container.appendChild(header);
+
+            const childrenContainer = document.createElement('div');
+            childrenContainer.className = 'tree-children';
+            
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    childrenContainer.appendChild(createTreeNode(child));
+                });
+                container.appendChild(childrenContainer);
+
+                toggle.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenContainer.classList.toggle('expanded');
+                    toggle.innerText = childrenContainer.classList.contains('expanded') ? '▼' : '▶';
+                };
+            }
+
+            header.onclick = async () => {
+                // Highlight node
+                document.querySelectorAll('.tree-header').forEach(h => h.classList.remove('selected'));
+                header.classList.add('selected');
+                selectedInstanceId = node.instanceId;
+                document.getElementById('btn-editor-focus').style.display = 'inline-block';
+                await selectObject(node.instanceId);
+            };
+
+            return container;
+        }
+
+        async function selectObject(instanceId) {
+            const inspector = document.getElementById('inspector-content');
+            inspector.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Loading details...</div>';
+            
+            // Select in editor silently
+            await callUnity('select_object', { instanceId, fieldValue: 'false' });
+
+            // Fetch details
+            const data = await callUnity('get_details', { instanceId });
+            if (data.success) {
+                inspector.innerHTML = '';
+                
+                // Details summary
+                const summary = document.createElement('div');
+                summary.style.marginBottom = '16px';
+                summary.innerHTML = \`
+                    <h3 style="font-size: 1rem; font-weight:700;">\${data.name}</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:4px;">Instance ID: \${data.instanceId} | Tag: \${data.tag} | Layer: \${data.layer}</p>
+                \`;
+                inspector.appendChild(summary);
+
+                // Render components
+                data.components.forEach(comp => {
+                    const card = document.createElement('div');
+                    card.className = 'component-card';
+
+                    const cHeader = document.createElement('div');
+                    cHeader.className = 'component-header';
+                    const parts = comp.type.split('.');
+                    cHeader.innerText = parts[parts.length - 1];
+                    card.appendChild(cHeader);
+
+                    const props = document.createElement('div');
+                    props.className = 'component-properties';
+
+                    // Merge fields and properties
+                    const allProps = { ...comp.fields, ...comp.properties };
+                    const keys = Object.keys(allProps);
+                    
+                    if (keys.length === 0) {
+                        props.innerHTML = '<div style="font-size:0.75rem; color: var(--text-muted); font-style:italic;">No serializable fields</div>';
+                    } else {
+                        keys.forEach(key => {
+                            const row = document.createElement('div');
+                            row.className = 'property-row';
+                            row.innerHTML = \`
+                                <span class="property-name" title="\${key}">\${key}</span>
+                                <span class="property-value">\${allProps[key]}</span>
+                            \`;
+                            props.appendChild(row);
+                        });
+                    }
+                    card.appendChild(props);
+                    inspector.appendChild(card);
+                });
+            } else {
+                inspector.innerHTML = '<span style="color: var(--danger)">Failed to fetch details.</span>';
+            }
+        }
+
+        // Console Log Handler
+        async function fetchLogs() {
+            if (!isConnectedToUnity) return;
+            const data = await callUnity('get_logs');
+            if (data.success && data.logs) {
+                renderLogs(data.logs);
+            }
+        }
+
+        function renderLogs(logs) {
+            const list = document.getElementById('log-list-content');
+            list.innerHTML = '';
+            if (logs.length === 0) {
+                list.innerHTML = '<div style="color: var(--text-muted); padding: 8px;">No logs in editor console.</div>';
+                return;
+            }
+            logs.forEach(entry => {
+                const row = document.createElement('div');
+                row.className = 'log-row';
+                
+                const time = document.createElement('span');
+                time.className = 'log-time';
+                time.innerText = entry.time || '00:00:00';
+
+                const type = document.createElement('span');
+                type.className = \`log-type-badge log-type-\${entry.type}\`;
+                type.innerText = entry.type.toUpperCase();
+
+                const msg = document.createElement('span');
+                msg.className = 'log-msg';
+                msg.innerText = entry.log;
+
+                row.appendChild(time);
+                row.appendChild(type);
+                row.appendChild(msg);
+                list.appendChild(row);
+            });
+            // Auto scroll to bottom
+            const container = document.getElementById('logs-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // WebSockets Connection
+        function connectWebSocket() {
+            try {
+                const ws = new WebSocket(\`ws://localhost:\${UNITY_PORT}/ws/\`);
+                
+                ws.onopen = () => {
+                    setUnityStatus(true);
+                    refreshHierarchy();
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.event === 'selection_changed') {
+                            selectedInstanceId = data.instanceId;
+                            if (data.instanceId !== 0) {
+                                selectObject(data.instanceId);
+                            }
+                            refreshHierarchy();
+                        } else if (data.event === 'log_received') {
+                            fetchLogs();
+                        }
+                    } catch (e) {}
+                };
+
+                ws.onclose = () => {
+                    setUnityStatus(false);
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                ws.onerror = () => {
+                    setUnityStatus(false);
+                };
+            } catch (e) {
+                setUnityStatus(false);
+                setTimeout(connectWebSocket, 3000);
+            }
+        }
+
+        // ADB Controls
+        document.getElementById('btn-adb-devices').onclick = async () => {
+            const out = document.getElementById('adb-devices-output');
+            out.innerText = 'Checking devices...';
+            const data = await callLocalApi('/api/adb/devices');
+            if (data.success) {
+                const dot = document.getElementById('quest-status-dot');
+                if (data.devices && data.devices.length > 0) {
+                    dot.className = 'status-dot online';
+                    out.innerHTML = data.devices.map(d => \`<div style="color:var(--success)">● \${d.id} (\${d.state})</div>\`).join('');
+                } else {
+                    dot.className = 'status-dot offline';
+                    out.innerText = 'No connected devices';
+                }
+            } else {
+                out.innerText = 'Error running ADB: ' + data.error;
+            }
+        };
+
+        document.getElementById('btn-quest-install').onclick = async () => {
+            const btn = document.getElementById('btn-quest-install');
+            const originalText = btn.innerText;
+            btn.innerText = 'Installing APK...';
+            btn.disabled = true;
+            const data = await callLocalApi('/api/adb/install');
+            btn.innerText = originalText;
+            btn.disabled = false;
+            alert(data.success ? 'APK Installed successfully!' : 'Installation failed: ' + data.error);
+        };
+
+        document.getElementById('btn-quest-launch').onclick = async () => {
+            const data = await callLocalApi('/api/adb/launch');
+            alert(data.success ? 'App launched on headset!' : 'Launch failed: ' + data.error);
+        };
+
+        document.getElementById('btn-quest-screenshot').onclick = async () => {
+            const box = document.getElementById('screenshot-box');
+            const img = document.getElementById('screenshot-img');
+            const text = document.getElementById('screenshot-text');
+
+            text.innerHTML = '<div style="display: flex; gap: 8px; align-items: center; justify-content:center;"><div class="loader"></div> Capturing...</div>';
+            img.style.display = 'none';
+
+            const data = await callLocalApi('/api/adb/screenshot');
+            if (data.success && data.image) {
+                text.style.display = 'none';
+                img.src = 'data:image/png;base64,' + data.image;
+                img.style.display = 'block';
+            } else {
+                text.innerText = 'Failed to capture screenshot: ' + data.error;
+            }
+        };
+
+        document.getElementById('btn-quest-logs').onclick = async () => {
+            const data = await callLocalApi('/api/adb/logs');
+            if (data.success) {
+                // Renders android logs inside the Console tab
+                const logsList = data.logs.map(log => ({
+                    time: new Date().toLocaleTimeString(),
+                    type: log.includes('E/') ? 'Error' : log.includes('W/') ? 'Warning' : 'Log',
+                    log: log
+                }));
+                renderLogs(logsList);
+            } else {
+                alert('Failed to get Quest logcat: ' + data.error);
+            }
+        };
+
+        // Header Actions
+        document.getElementById('btn-refresh-hierarchy').onclick = refreshHierarchy;
+        
+        document.getElementById('btn-editor-focus').onclick = () => {
+            if (selectedInstanceId) {
+                callUnity('select_object', { instanceId: selectedInstanceId, fieldValue: 'true' });
+            }
+        };
+
+        document.getElementById('btn-clear-logs').onclick = async () => {
+            await callUnity('clear_logs');
+            fetchLogs();
+        };
+
+        // Start Periodic updates
+        connectWebSocket();
+        setInterval(updatePerformance, 1000);
+        setInterval(() => {
+            if (isConnectedToUnity) {
+                fetchLogs();
+            }
+        }, 3000);
+
+        // Initial Ping
+        (async () => {
+            const ping = await callUnity('ping');
+            if (ping.success) {
+                setUnityStatus(true);
+                refreshHierarchy();
+                fetchLogs();
+            }
+        })();
+    </script>
+</body>
+</html>`;
