@@ -4,20 +4,21 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unity AI Developer Ecosystem - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --panel-bg: rgba(17, 24, 39, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary: #00d2ff;
-            --primary-glow: rgba(0, 210, 255, 0.2);
-            --secondary: #ff007f;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --panel-header-bg: #21262d;
+            --border-color: #30363d;
+            --primary: #58a6ff;
+            --success: #2ea44f;
+            --warning: #d29922;
+            --danger: #f85149;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --text-highlight: #f0f6fc;
+            --terminal-bg: #010409;
         }
 
         * {
@@ -27,95 +28,85 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'JetBrains Mono', monospace;
             background-color: var(--bg-color);
             color: var(--text-main);
             overflow: hidden;
             height: 100vh;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(255, 0, 127, 0.05) 0px, transparent 50%);
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 24px;
-            background-color: rgba(11, 15, 25, 0.8);
-            backdrop-filter: blur(12px);
+            padding: 0 16px;
+            background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
-            height: 64px;
+            height: 48px;
             z-index: 10;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, var(--primary), #9d4edd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            color: var(--text-highlight);
         }
 
         .logo-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
         }
 
         .status-indicators {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
 
         .status-badge {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 6px 12px;
-            background-color: rgba(255, 255, 255, 0.03);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: var(--panel-header-bg);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 4px;
+            color: var(--text-main);
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: var(--text-muted);
-            transition: all 0.3s ease;
         }
 
         .status-dot.online {
             background-color: var(--success);
-            box-shadow: 0 0 8px var(--success);
         }
 
         .status-dot.offline {
             background-color: var(--danger);
-            box-shadow: 0 0 8px var(--danger);
         }
 
         /* Layout Grid */
         .dashboard-container {
             display: grid;
-            grid-template-columns: 280px 1fr 340px;
-            grid-template-rows: calc(100vh - 64px - 220px) 220px;
-            height: calc(100vh - 64px);
+            grid-template-columns: 260px 1fr 320px;
+            grid-template-rows: calc(100vh - 48px - 200px) 200px;
+            height: calc(100vh - 48px);
         }
 
-        /* Panel Common */
+        /* Panel Structure */
         .panel {
             background-color: var(--panel-bg);
-            backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -123,32 +114,33 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .panel-header {
-            padding: 12px 16px;
+            padding: 8px 16px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: rgba(255, 255, 255, 0.01);
+            background-color: var(--panel-header-bg);
+            height: 36px;
         }
 
         .panel-title {
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.7rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .panel-content {
-            padding: 16px;
+            padding: 12px;
             overflow-y: auto;
             flex: 1;
         }
 
-        /* Sidebar Left (Quest & Control) */
+        /* Sidebar Left */
         .sidebar-left {
             grid-column: 1;
             grid-row: 1 / 3;
@@ -157,71 +149,70 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             border-bottom: none;
         }
 
-        .menu-item {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
+        .menu-section {
+            margin-bottom: 20px;
         }
 
         .menu-title {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--primary);
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
         }
 
         .btn {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            background-color: var(--panel-header-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: background-color 0.1s ease, border-color 0.1s ease;
             width: 100%;
+            margin-bottom: 6px;
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
+            background-color: var(--border-color);
+            border-color: var(--text-muted);
+            color: var(--text-highlight);
         }
 
         .btn:active {
-            transform: translateY(0);
+            background-color: var(--panel-bg);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), #00a8ff);
-            border: none;
-            color: #05070f;
-            font-weight: 600;
-            box-shadow: 0 4px 14px var(--primary-glow);
+            background-color: #238636;
+            border-color: rgba(240, 246, 252, 0.1);
+            color: #ffffff;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #33e0ff, var(--primary));
-            box-shadow: 0 6px 20px var(--primary-glow);
+            background-color: var(--success);
+            border-color: var(--success);
         }
 
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
+        .btn-secondary {
+            background-color: rgba(212, 153, 34, 0.15);
+            border-color: rgba(212, 153, 34, 0.3);
+            color: #f1e05a;
         }
 
-        .btn-danger:hover {
-            background: var(--danger);
-            color: #fff;
-            border-color: var(--danger);
+        .btn-secondary:hover {
+            background-color: var(--warning);
+            border-color: var(--warning);
+            color: #000;
         }
 
         /* Main Workspace */
@@ -231,16 +222,16 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             border-top: none;
             border-bottom: none;
             display: grid;
-            grid-template-rows: 1fr 180px;
+            grid-template-rows: 1fr 160px;
         }
 
         .scene-container {
-            padding: 16px;
+            padding: 12px;
             overflow-y: auto;
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* Tree Styles */
+        /* VS Code Style File Tree */
         .tree-node {
             margin-left: 12px;
             position: relative;
@@ -250,37 +241,38 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             user-select: none;
-            transition: background-color 0.15s ease;
+            transition: background-color 0.1s ease;
         }
 
         .tree-header:hover {
-            background-color: rgba(255, 255, 255, 0.04);
+            background-color: var(--panel-header-bg);
         }
 
         .tree-header.selected {
-            background-color: var(--primary-glow);
+            background-color: #21262d;
             border-left: 2px solid var(--primary);
+            color: var(--text-highlight);
         }
 
         .tree-toggle {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.6rem;
+            font-size: 0.5rem;
             color: var(--text-muted);
         }
 
         .tree-children {
             display: none;
-            border-left: 1px dashed rgba(255, 255, 255, 0.1);
-            margin-left: 6px;
+            border-left: 1px solid var(--border-color);
+            margin-left: 5px;
             padding-left: 6px;
         }
 
@@ -289,51 +281,50 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .gameobject-icon {
-            color: var(--primary);
-            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
         }
 
         .gameobject-icon.inactive {
-            color: var(--text-muted);
-            opacity: 0.5;
+            opacity: 0.35;
         }
 
         /* Charts / Profiler Area */
         .profiler-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding: 16px;
-            background-color: rgba(255, 255, 255, 0.01);
+            gap: 12px;
+            padding: 12px;
+            background-color: var(--bg-color);
         }
 
         .chart-box {
             position: relative;
-            background-color: rgba(0, 0, 0, 0.2);
+            background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 4px;
             padding: 8px;
             display: flex;
             flex-direction: column;
         }
 
         .chart-title {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 4px;
             display: flex;
             justify-content: space-between;
         }
 
         .chart-value {
-            color: var(--text-main);
+            color: var(--text-highlight);
             font-weight: 700;
         }
 
         canvas {
             width: 100%;
-            height: 110px;
+            height: 90px;
             background-color: transparent;
         }
 
@@ -354,31 +345,31 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             height: 100%;
             color: var(--text-muted);
             gap: 12px;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             text-align: center;
             padding: 20px;
         }
 
         .inspector-icon {
-            font-size: 2.5rem;
-            color: rgba(255, 255, 255, 0.05);
+            font-size: 1.8rem;
+            color: var(--border-color);
         }
 
         .component-card {
             border: 1px solid var(--border-color);
-            background-color: rgba(255, 255, 255, 0.02);
-            border-radius: 8px;
-            margin-bottom: 12px;
+            background-color: var(--bg-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
             overflow: hidden;
         }
 
         .component-header {
-            background-color: rgba(255, 255, 255, 0.03);
-            padding: 8px 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            background-color: var(--panel-header-bg);
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
             border-bottom: 1px solid var(--border-color);
-            color: var(--primary);
+            color: var(--text-highlight);
         }
 
         .component-properties {
@@ -387,10 +378,14 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
         .property-row {
             display: grid;
-            grid-template-columns: 100px 1fr;
-            font-size: 0.75rem;
+            grid-template-columns: 110px 1fr;
+            font-size: 0.65rem;
             padding: 4px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .property-row:last-child {
+            border-bottom: none;
         }
 
         .property-name {
@@ -401,9 +396,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .property-value {
-            font-family: 'JetBrains Mono', monospace;
-            color: #e5c07b;
+            color: #d19a66;
             word-break: break-all;
+            font-weight: 500;
         }
 
         /* Bottom Panel (Logs Console) */
@@ -416,8 +411,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .log-list {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             display: flex;
             flex-direction: column;
             gap: 2px;
@@ -425,35 +419,36 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
         .log-row {
             padding: 4px 8px;
-            border-radius: 4px;
+            border-radius: 2px;
             display: flex;
             gap: 8px;
-            transition: background-color 0.1s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.01);
         }
 
         .log-row:hover {
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: var(--panel-header-bg);
         }
 
         .log-time {
             color: var(--text-muted);
-            width: 70px;
+            width: 60px;
             flex-shrink: 0;
         }
 
         .log-type-badge {
-            width: 60px;
+            width: 55px;
             flex-shrink: 0;
             text-align: center;
-            font-weight: bold;
-            border-radius: 3px;
+            font-weight: 700;
+            border-radius: 2px;
             padding: 0 4px;
+            font-size: 0.55rem;
         }
 
-        .log-type-Log { background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
-        .log-type-Warning { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; }
-        .log-type-Error { background-color: rgba(239, 104, 104, 0.1); color: #f87171; }
-        .log-type-Exception { background-color: rgba(239, 104, 104, 0.1); color: #f87171; }
+        .log-type-Log { background-color: rgba(46, 164, 79, 0.15); color: #58d68d; }
+        .log-type-Warning { background-color: rgba(210, 153, 34, 0.15); color: #f5b041; }
+        .log-type-Error { background-color: rgba(248, 81, 73, 0.15); color: #ec7063; }
+        .log-type-Exception { background-color: rgba(248, 81, 73, 0.15); color: #ec7063; }
 
         .log-msg {
             color: var(--text-main);
@@ -461,19 +456,19 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             word-break: break-all;
         }
 
-        /* Quest Screenshot Modal/Viewer */
+        /* Screenshot Container */
         .screenshot-container {
             width: 100%;
             height: 120px;
-            border: 1px dashed var(--border-color);
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 8px;
             overflow: hidden;
             position: relative;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: var(--terminal-bg);
         }
 
         .screenshot-img {
@@ -483,7 +478,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .screenshot-placeholder {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             text-align: center;
         }
@@ -492,9 +487,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             border-top: 2px solid var(--primary);
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
+            width: 14px;
+            height: 14px;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
@@ -503,18 +498,18 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         }
 
         .custom-scroll::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 4px;
+            height: 4px;
         }
         .custom-scroll::-webkit-scrollbar-track {
             background: transparent;
         }
         .custom-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            background: var(--border-color);
+            border-radius: 2px;
         }
         .custom-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--text-muted);
         }
     </style>
 </head>
@@ -522,51 +517,51 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <header>
         <div class="logo">
             <div class="logo-dot"></div>
-            UNITY AI DEVELOPER ECOSYSTEM
+            UNITY AI ECOSYSTEM
         </div>
         <div class="status-indicators">
             <div class="status-badge">
                 <span class="status-dot" id="unity-status-dot"></span>
-                Unity Editor (Port 3024)
+                Unity Bridge (3024)
             </div>
             <div class="status-badge">
                 <span class="status-dot" id="quest-status-dot"></span>
-                Android ADB Device
+                ADB Quest
             </div>
         </div>
     </header>
 
     <div class="dashboard-container">
-        <!-- LEFT: VR Meta Quest & Controls -->
+        <!-- LEFT: Quest Tools -->
         <aside class="panel sidebar-left">
             <div class="panel-header">
-                <div class="panel-title">VR Meta Quest Integration</div>
+                <div class="panel-title">VR Deployment</div>
             </div>
-            <div class="panel-content custom-scroll" style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="menu-item">
-                    <div class="menu-title">ADB Diagnostics</div>
-                    <button class="btn" id="btn-adb-devices">List ADB Devices</button>
-                    <div id="adb-devices-output" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">No devices checked</div>
+            <div class="panel-content custom-scroll" style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="menu-section">
+                    <div class="menu-title">ADB Devices</div>
+                    <button class="btn" id="btn-adb-devices">Scan devices</button>
+                    <div id="adb-devices-output" style="font-size: 0.6rem; color: var(--text-muted); margin-top: 6px;">No scan history.</div>
                 </div>
 
-                <div class="menu-item">
-                    <div class="menu-title">Deployment</div>
-                    <button class="btn btn-primary" id="btn-quest-install">Install APK on Headset</button>
-                    <button class="btn" id="btn-quest-launch">Launch App on Quest</button>
+                <div class="menu-section">
+                    <div class="menu-title">Build Pipeline</div>
+                    <button class="btn btn-primary" id="btn-quest-install">Install APK</button>
+                    <button class="btn" id="btn-quest-launch">Run App</button>
                 </div>
 
-                <div class="menu-item">
+                <div class="menu-section">
                     <div class="menu-title">Visual Capture</div>
-                    <button class="btn" id="btn-quest-screenshot">Pull Headset Screenshot</button>
+                    <button class="btn" id="btn-quest-screenshot">Capture Headset View</button>
                     <div class="screenshot-container" id="screenshot-box">
                         <div class="screenshot-placeholder" id="screenshot-text">No screenshot captured</div>
                         <img src="" class="screenshot-img" id="screenshot-img" style="display:none;" />
                     </div>
                 </div>
 
-                <div class="menu-item">
-                    <div class="menu-title">Quest Debug Logs</div>
-                    <button class="btn" id="btn-quest-logs">Stream Quest Logcat</button>
+                <div class="menu-section">
+                    <div class="menu-title">System Logs</div>
+                    <button class="btn btn-secondary" id="btn-quest-logs">Get Headset Logs</button>
                 </div>
             </div>
         </aside>
@@ -575,25 +570,25 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <main class="main-workspace">
             <!-- Scene Hierarchy -->
             <div class="scene-container custom-scroll">
-                <div class="panel-header" style="padding: 0 0 12px 0; margin-bottom: 12px; background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <div class="panel-title">Active Scene Hierarchy</div>
-                    <button class="btn" id="btn-refresh-hierarchy" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">Refresh Tree</button>
+                <div class="panel-header" style="padding: 0 0 8px 0; margin-bottom: 12px; background: transparent; border-bottom: 1px solid var(--border-color);">
+                    <div class="panel-title">Scene Hierarchy</div>
+                    <button class="btn" id="btn-refresh-hierarchy" style="width: auto; padding: 4px 10px; font-size: 0.65rem; margin-bottom: 0;">Refresh Tree</button>
                 </div>
-                <div id="scene-tree-root">Loading hierarchy...</div>
+                <div id="scene-tree-root">Awaiting active editor connection...</div>
             </div>
 
             <!-- Charts & Performance -->
             <div class="profiler-container">
                 <div class="chart-box">
                     <div class="chart-title">
-                        <span>CPU FRAMERATE</span>
+                        <span>CPU FRAME TIME (FPS)</span>
                         <span class="chart-value" id="fps-val">0.0 FPS</span>
                     </div>
                     <canvas id="fps-chart"></canvas>
                 </div>
                 <div class="chart-box">
                     <div class="chart-title">
-                        <span>GC ALLOCATIONS (FRAME DELTA)</span>
+                        <span>GC ALLOCATIONS (HEAP)</span>
                         <span class="chart-value" id="gc-val">0.0 KB</span>
                     </div>
                     <canvas id="gc-chart"></canvas>
@@ -605,12 +600,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <aside class="panel sidebar-right">
             <div class="panel-header">
                 <div class="panel-title">Inspector</div>
-                <button class="btn" id="btn-editor-focus" style="width: auto; padding: 4px 10px; font-size: 0.75rem; display: none;">Focus in Editor</button>
+                <button class="btn" id="btn-editor-focus" style="width: auto; padding: 4px 10px; font-size: 0.65rem; margin-bottom: 0; display: none;">Focus in Scene</button>
             </div>
             <div class="panel-content custom-scroll" id="inspector-content">
                 <div class="inspector-placeholder">
                     <div class="inspector-icon">🔍</div>
-                    Select a GameObject in the hierarchy tree to inspect its components, fields, and reflection values in real-time.
+                    Select a GameObject in the scene tree to inspect serialized components and properties.
                 </div>
             </div>
         </aside>
@@ -618,15 +613,15 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- BOTTOM Console Logs -->
         <footer class="panel bottom-console">
             <div class="panel-header">
-                <div class="panel-title">Unity Editor Console Stream</div>
-                <button class="btn" id="btn-clear-logs" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">Clear Console</button>
+                <div class="panel-title">Console logs</div>
+                <button class="btn" id="btn-clear-logs" style="width: auto; padding: 4px 10px; font-size: 0.65rem; margin-bottom: 0;">Clear</button>
             </div>
             <div class="panel-content custom-scroll" id="logs-container">
                 <div class="log-list" id="log-list-content">
                     <div class="log-row">
                         <span class="log-time">00:00:00</span>
-                        <span class="log-type-badge log-type-Log">SYSTEM</span>
-                        <span class="log-msg">Console log stream initialized. Awaiting connection...</span>
+                        <span class="log-type-badge log-type-Log">BRIDGE</span>
+                        <span class="log-msg">Active console listener stream initialized.</span>
                     </div>
                 </div>
             </div>
@@ -641,11 +636,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         let selectedInstanceId = null;
         let isConnectedToUnity = false;
 
-        // Sliding arrays for chart rendering
         const fpsHistory = Array(60).fill(0);
         const gcHistory = Array(60).fill(0);
 
-        // Canvas setups
         const fpsCanvas = document.getElementById('fps-chart');
         const gcCanvas = document.getElementById('gc-chart');
         const fpsCtx = fpsCanvas.getContext('2d');
@@ -663,8 +656,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             const height = ctx.canvas.height;
             ctx.clearRect(0, 0, width, height);
 
-            // Draw grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = '#21262d';
             ctx.lineWidth = 1;
             for (let i = 0; i < width; i += width / 6) {
                 ctx.beginPath();
@@ -679,9 +671,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 ctx.stroke();
             }
 
-            // Draw line
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             
             const step = width / (data.length - 1);
@@ -694,16 +685,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
-
-            // Draw area gradient
-            ctx.fillStyle = color.replace(')', ', 0.08)').replace('rgb', 'rgba');
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.closePath();
-            ctx.fill();
         }
 
-        // Call Unity C# REST Endpoint
         async function callUnity(action, params = {}) {
             try {
                 const response = await fetch(UNITY_URL, {
@@ -717,7 +700,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
         }
 
-        // Call local CLI dashboard API endpoints
         async function callLocalApi(endpoint, params = {}) {
             try {
                 const response = await fetch(endpoint, {
@@ -731,14 +713,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
         }
 
-        // Live Performance & Ping check
         async function updatePerformance() {
             if (!isConnectedToUnity) {
                 setUnityStatus(false);
                 return;
             }
 
-            // Fetch metrics
             const metrics = await callUnity('get_performance_metrics');
             if (metrics.success) {
                 setUnityStatus(true);
@@ -761,10 +741,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 gcHistory.push(gc);
                 gcHistory.shift();
 
-                drawChart(fpsCtx, fpsHistory, 'rgb(16, 185, 129)', 90);
-                // Dynamically scale memory peak
+                drawChart(fpsCtx, fpsHistory, '#58a6ff', 90);
                 const maxGc = Math.max(...gcHistory, 50);
-                drawChart(gcCtx, gcHistory, 'rgb(0, 210, 255)', maxGc);
+                drawChart(gcCtx, gcHistory, '#d29922', maxGc);
             }
         }
 
@@ -780,15 +759,14 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
         }
 
-        // Hierarchy Renderer
         async function refreshHierarchy() {
             const root = document.getElementById('scene-tree-root');
             if (!isConnectedToUnity) {
-                root.innerHTML = '<span style="color: var(--danger)">✖ Editor disconnected. Start server in Unity.</span>';
+                root.innerHTML = '<span style="color: var(--danger)">✖ Unity Bridge inactive. Confirm server status in Editor.</span>';
                 return;
             }
 
-            root.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Loading...</div>';
+            root.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Querying hierarchy...</div>';
             const data = await callUnity('get_hierarchy');
             if (data.success && data.hierarchy) {
                 root.innerHTML = '';
@@ -796,7 +774,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                     root.appendChild(createTreeNode(node));
                 });
             } else {
-                root.innerHTML = '<span style="color: var(--danger)">Error loading hierarchy.</span>';
+                root.innerHTML = '<span style="color: var(--danger)">Failed to read active scene hierarchy.</span>';
             }
         }
 
@@ -812,18 +790,18 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
             const toggle = document.createElement('span');
             toggle.className = 'tree-toggle';
-            toggle.innerHTML = node.children && node.children.length > 0 ? '▶' : '&nbsp;&nbsp;';
+            toggle.innerHTML = node.children && node.children.length > 0 ? '▼' : '&nbsp;&nbsp;';
 
             const icon = document.createElement('span');
             icon.className = 'gameobject-icon';
-            icon.innerHTML = '⬢ ';
+            icon.innerHTML = '❖ ';
             if (!node.active) {
                 icon.classList.add('inactive');
             }
 
             const name = document.createElement('span');
             name.innerText = node.name;
-            name.style.opacity = node.active ? '1.0' : '0.4';
+            name.style.opacity = node.active ? '1.0' : '0.45';
 
             header.appendChild(toggle);
             header.appendChild(icon);
@@ -831,7 +809,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             container.appendChild(header);
 
             const childrenContainer = document.createElement('div');
-            childrenContainer.className = 'tree-children';
+            childrenContainer.className = 'tree-children expanded';
             
             if (node.children && node.children.length > 0) {
                 node.children.forEach(child => {
@@ -847,7 +825,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
 
             header.onclick = async () => {
-                // Highlight node
                 document.querySelectorAll('.tree-header').forEach(h => h.classList.remove('selected'));
                 header.classList.add('selected');
                 selectedInstanceId = node.instanceId;
@@ -860,26 +837,22 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
         async function selectObject(instanceId) {
             const inspector = document.getElementById('inspector-content');
-            inspector.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Loading details...</div>';
+            inspector.innerHTML = '<div style="display: flex; gap: 8px; align-items: center;"><div class="loader"></div> Reading fields...</div>';
             
-            // Select in editor silently
             await callUnity('select_object', { instanceId, fieldValue: 'false' });
 
-            // Fetch details
             const data = await callUnity('get_details', { instanceId });
             if (data.success) {
                 inspector.innerHTML = '';
                 
-                // Details summary
                 const summary = document.createElement('div');
-                summary.style.marginBottom = '16px';
+                summary.style.marginBottom = '12px';
                 summary.innerHTML = \`
-                    <h3 style="font-size: 1rem; font-weight:700;">\${data.name}</h3>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:4px;">Instance ID: \${data.instanceId} | Tag: \${data.tag} | Layer: \${data.layer}</p>
+                    <h3 style="font-size: 0.8rem; font-weight:700; color:var(--text-highlight);">\${data.name}</h3>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); margin-top:2px;">Instance ID: \${data.instanceId} | Tag: \${data.tag} | Layer: \${data.layer}</p>
                 \`;
                 inspector.appendChild(summary);
 
-                // Render components
                 data.components.forEach(comp => {
                     const card = document.createElement('div');
                     card.className = 'component-card';
@@ -893,12 +866,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                     const props = document.createElement('div');
                     props.className = 'component-properties';
 
-                    // Merge fields and properties
                     const allProps = { ...comp.fields, ...comp.properties };
                     const keys = Object.keys(allProps);
                     
                     if (keys.length === 0) {
-                        props.innerHTML = '<div style="font-size:0.75rem; color: var(--text-muted); font-style:italic;">No serializable fields</div>';
+                        props.innerHTML = '<div style="font-size:0.6rem; color: var(--text-muted); font-style:italic;">No serializable data fields</div>';
                     } else {
                         keys.forEach(key => {
                             const row = document.createElement('div');
@@ -914,11 +886,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                     inspector.appendChild(card);
                 });
             } else {
-                inspector.innerHTML = '<span style="color: var(--danger)">Failed to fetch details.</span>';
+                inspector.innerHTML = '<span style="color: var(--danger)">Failed to query component details.</span>';
             }
         }
 
-        // Console Log Handler
         async function fetchLogs() {
             if (!isConnectedToUnity) return;
             const data = await callUnity('get_logs');
@@ -931,7 +902,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             const list = document.getElementById('log-list-content');
             list.innerHTML = '';
             if (logs.length === 0) {
-                list.innerHTML = '<div style="color: var(--text-muted); padding: 8px;">No logs in editor console.</div>';
+                list.innerHTML = '<div style="color: var(--text-muted); padding: 8px;">Log buffer is empty.</div>';
                 return;
             }
             logs.forEach(entry => {
@@ -955,12 +926,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 row.appendChild(msg);
                 list.appendChild(row);
             });
-            // Auto scroll to bottom
             const container = document.getElementById('logs-container');
             container.scrollTop = container.scrollHeight;
         }
 
-        // WebSockets Connection
         function connectWebSocket() {
             try {
                 const ws = new WebSocket(\`ws://localhost:\${UNITY_PORT}/ws/\`);
@@ -999,39 +968,38 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
         }
 
-        // ADB Controls
         document.getElementById('btn-adb-devices').onclick = async () => {
             const out = document.getElementById('adb-devices-output');
-            out.innerText = 'Checking devices...';
+            out.innerText = 'Scanning...';
             const data = await callLocalApi('/api/adb/devices');
             if (data.success) {
                 const dot = document.getElementById('quest-status-dot');
                 if (data.devices && data.devices.length > 0) {
                     dot.className = 'status-dot online';
-                    out.innerHTML = data.devices.map(d => \`<div style="color:var(--success)">● \${d.id} (\${d.state})</div>\`).join('');
+                    out.innerHTML = data.devices.map(d => \`<div>● \${d.id} (\${d.state})</div>\`).join('');
                 } else {
                     dot.className = 'status-dot offline';
                     out.innerText = 'No connected devices';
                 }
             } else {
-                out.innerText = 'Error running ADB: ' + data.error;
+                out.innerText = 'ADB Error: ' + data.error;
             }
         };
 
         document.getElementById('btn-quest-install').onclick = async () => {
             const btn = document.getElementById('btn-quest-install');
             const originalText = btn.innerText;
-            btn.innerText = 'Installing APK...';
+            btn.innerText = 'Installing...';
             btn.disabled = true;
             const data = await callLocalApi('/api/adb/install');
             btn.innerText = originalText;
             btn.disabled = false;
-            alert(data.success ? 'APK Installed successfully!' : 'Installation failed: ' + data.error);
+            alert(data.success ? 'APK installed successfully!' : 'Installation failed: ' + data.error);
         };
 
         document.getElementById('btn-quest-launch').onclick = async () => {
             const data = await callLocalApi('/api/adb/launch');
-            alert(data.success ? 'App launched on headset!' : 'Launch failed: ' + data.error);
+            alert(data.success ? 'App launch triggered!' : 'Launch failed: ' + data.error);
         };
 
         document.getElementById('btn-quest-screenshot').onclick = async () => {
@@ -1039,7 +1007,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             const img = document.getElementById('screenshot-img');
             const text = document.getElementById('screenshot-text');
 
-            text.innerHTML = '<div style="display: flex; gap: 8px; align-items: center; justify-content:center;"><div class="loader"></div> Capturing...</div>';
+            text.innerHTML = '<div style="display: flex; gap: 8px; align-items: center; justify-content:center;"><div class="loader"></div> Pulling...</div>';
             img.style.display = 'none';
 
             const data = await callLocalApi('/api/adb/screenshot');
@@ -1048,14 +1016,13 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 img.src = 'data:image/png;base64,' + data.image;
                 img.style.display = 'block';
             } else {
-                text.innerText = 'Failed to capture screenshot: ' + data.error;
+                text.innerText = 'Screenshot failed: ' + data.error;
             }
         };
 
         document.getElementById('btn-quest-logs').onclick = async () => {
             const data = await callLocalApi('/api/adb/logs');
             if (data.success) {
-                // Renders android logs inside the Console tab
                 const logsList = data.logs.map(log => ({
                     time: new Date().toLocaleTimeString(),
                     type: log.includes('E/') ? 'Error' : log.includes('W/') ? 'Warning' : 'Log',
@@ -1063,11 +1030,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 }));
                 renderLogs(logsList);
             } else {
-                alert('Failed to get Quest logcat: ' + data.error);
+                alert('Quest logcat failed: ' + data.error);
             }
         };
 
-        // Header Actions
         document.getElementById('btn-refresh-hierarchy').onclick = refreshHierarchy;
         
         document.getElementById('btn-editor-focus').onclick = () => {
@@ -1081,7 +1047,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             fetchLogs();
         };
 
-        // Start Periodic updates
         connectWebSocket();
         setInterval(updatePerformance, 1000);
         setInterval(() => {
@@ -1090,7 +1055,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             }
         }, 3000);
 
-        // Initial Ping
         (async () => {
             const ping = await callUnity('ping');
             if (ping.success) {
